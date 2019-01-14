@@ -21,6 +21,7 @@ public class AttrManageController {
         return "attrListPage";
     }
 
+
     @RequestMapping(value = "getCatalog1",method = RequestMethod.POST)
     @ResponseBody
     public List<BaseCatalog1> getCatalog1() {
@@ -45,12 +46,14 @@ public class AttrManageController {
         return manageService.getAttrList(catalog3Id);
     }
 
+
     @RequestMapping(value = "saveAttrInfo",method = RequestMethod.POST)
     @ResponseBody
     public void saveAttrInfo(BaseAttrInfo baseAttrInfo){
         manageService.saveAttrInfo(baseAttrInfo);
     }
 
+    // 返回空没有任何显示的消息
     @RequestMapping("getAttrValueList")
     @ResponseBody
     public List<BaseAttrValue> getAttrValueList(String attrId){

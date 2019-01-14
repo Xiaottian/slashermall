@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"  xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
@@ -48,17 +48,87 @@
             </div>
         </div>
 
-        <!--引用页面-->
-       <!-- <div th:include="spuSaleAttrPage"></div>-->
+        <!--引用页面 addSpuSaleAttr() -->
+        <div th:include="spuSaleAttrPage"></div>
 
     </form>
 </div>
 <!----------------弹出框的按钮组----------------------->
 <div id="spuBtns">
     <a href="#" class="easyui-linkbutton" onclick="saveSpu()">保 存</a>
-    <a href="#" class="easyui-linkbutton" onclick="closeSpu()">关 闭</a>
+    <a href="#" class="easyui-linkbutton" onclick="javascript:$('#spu_dlg').dialog('close')">关 闭</a>
 </div>
 <script type="text/javascript">
+
+    /*编辑*/
+    function editSpuSaleAttr(){
+        var spuId= $("#spuId").val();
+        var spuSaleAttr = $('#spuSaleAttrDg').datagrid('getSelected');
+        initSpuSaleAttrDlg(spuId,spuSaleAttr);
+    }
+
+    /*保存*/
+    function saveSpu() {
+        // 保存数据 spuInfo，spuImage,spuSaleAttr,spuSaleAttrValue ,后台保存的时候，传入什么给controller，有可能直接传入SpuInfo对象即可！
+        // 创建json对象
+
+        var spuInfo = {};
+        // spuId
+        spuInfo["id"]=$("#spuId").val();
+        // name属性
+        spuInfo["spuName"]=$("#spuName").val();
+        // 描述
+        spuInfo["description"]=$("#description").val();
+        // 三级分类id添加
+        spuInfo["catalog3Id"]=$("#ctg3ForSpuList").combobox("getValue");
+
+
+        // 需要循环，并且，该处一层循环够么？一层只能循环，属性名称，我们还需添加属性值，所以，该处需要两层循环才能取得！
+        var spuSaleAttrDgRows = $("#spuSaleAttrDg").datagrid("getRows");
+        for (var i = 0; i < spuSaleAttrDgRows.length; i++) {
+            // spuinfo.spuSaleAttrList[i].saleAttrId
+            // 保存的是销售属性名称
+            spuInfo['spuSaleAttrList['+i+'].id'] = spuSaleAttrDgRows[i].id;
+            spuInfo['spuSaleAttrList['+i+'].saleAttrId'] = spuSaleAttrDgRows[i].saleAttrId;
+            spuInfo['spuSaleAttrList['+i+'].saleAttrName'] = spuSaleAttrDgRows[i].saleAttrName;
+            // 保存销售属性值
+            // { field:'spuSaleAttrValueJson',title:'销售属性值暂存', width:'50%'}
+            var saleAttrValueRows  = spuSaleAttrDgRows[i].spuSaleAttrValueJson.rows;
+            // 循环属性值,
+            for (var j = 0; j < saleAttrValueRows.length; j++) {
+                // spuinfo.spuSaleAttrList[i].spuSaleAttrValueList[j].saleAttrValueName
+                spuInfo['spuSaleAttrList['+i+'].spuSaleAttrValueList['+j+'].id'] = saleAttrValueRows[j].id;
+                // 坑！
+                spuInfo['spuSaleAttrList['+i+'].spuSaleAttrValueList['+j+'].saleAttrId'] = spuSaleAttrDgRows[i].saleAttrId;
+                spuInfo['spuSaleAttrList['+i+'].spuSaleAttrValueList['+j+'].saleAttrValueName'] = saleAttrValueRows[j].saleAttrValueName;
+            }
+        }
+
+        // 图片设置的时候，需要进行循环设 $("#spuImgDg")置
+        var spuImgDgRows = $("#spuImgDg").datagrid("getRows");
+        for (var i = 0; i < spuImgDgRows.length; i++) {
+            //  spuinfo.spuImageList[i].imgName  imgName ,imgUrl
+            spuInfo['spuImageList['+ i +'].imgName'] = spuImgDgRows[i].imgName;
+            spuInfo['spuImageList['+ i +'].imgUrl'] = spuImgDgRows[i].imgUrl;
+        }
+        // 输出数据
+        console.log(JSON.stringify(spuInfo));
+       // 保存数据
+        $.post("saveSpuInfo",spuInfo,function (data) {
+            // 关闭dialog
+            $("#spu_dlg").dialog("close");
+            // 加载数据
+            $("#spulist_dg").datagrid("reload");
+
+        })
+    }
+
+    /*点击添加销售属性事件*/
+    function addSpuSaleAttr(){
+        /*初始化dialog页面中的控件*/
+        initSpuSaleAttrDlg();
+    }
+
     // 初始化
     function addSpuInfo() {
         // 调用初始化initSpuInfoDlg()方法
@@ -85,12 +155,23 @@
 
     function initSpuForm(spuInfo){
         //清空文本框
+        if(spuInfo==undefined) {
+            return;
+        }
+
+        $("#spuName").textbox("setValue",spuInfo.spuName);
+        $("#description").textbox("setValue",spuInfo.description);
+        $("#spuId").val(spuInfo.id);
         $("#spuForm").form("clear");
+
     }
 
 /* 初始化表格*/
 
     function initSpuImgListDatagrid(spuInfo) {
+        if (spuInfo) {
+            spuImgDg.datagrid({url: "spuImageList?spuId=" + spuInfo.id})
+        }
         /*从新加载数据*/
         $('#spuImgDg').datagrid('loadData', {total: 0, rows: []});
         console.log("初始化表格");
@@ -150,7 +231,11 @@
             /*datagrid-detailview.js 能够查看图片上传之后的效果*/
             view: detailview,
             detailFormatter: function (rowIndex, rowData) {
+                if (rowData.imgUrl==null){
+                    return ;
+                }
                 return "<img src=" + rowData.imgUrl + " style='width:100px;height:100px;'>";
+
             }
         });
     }
@@ -232,6 +317,10 @@
     }
     /*销售属性的表格*/
     function initSpuSaleAttrListDatagrid(spuId){
+        if(spuInfo){
+            spuSaleAttrDg.datagrid({url:"spuSaleAttrList?spuId="+spuInfo.id});
+        }
+
         /*获取控件*/
         var spuSaleAttrDg =$('#spuSaleAttrDg').datagrid('loadData', { total: 0, rows: [] });
         spuSaleAttrDg.datagrid({

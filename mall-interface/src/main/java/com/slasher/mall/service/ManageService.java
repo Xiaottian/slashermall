@@ -18,10 +18,14 @@ public interface ManageService {
     //根据三级分类的id查询属性
     public List<BaseAttrInfo> getAttrList(String catalog3Id);
 
-
+    //保存数据分发
     void saveAttrInfo(BaseAttrInfo baseAttrInfo);
-
+    // 获取属性值数据
     BaseAttrInfo getAttrInfo(String attrId);
-
+    // 查询spu列表信息
     List<SpuInfo> getSpuInfoList(SpuInfo spuInfo);
+    // 查询所有销售属性列表
+    public List<BaseSaleAttr> getBaseSaleAttrList();
+    // 保存spuInfo的信息
+    void saveSpuInfo(SpuInfo spuInfo);
 }

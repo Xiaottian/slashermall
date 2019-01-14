@@ -27,5 +27,53 @@ public class SpuSaleAttr implements Serializable {
 
     @Transient
     Map spuSaleAttrValueJson;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getSpuId() {
+        return spuId;
+    }
+
+    public void setSpuId(String spuId) {
+        this.spuId = spuId;
+    }
+
+    public String getSaleAttrId() {
+        return saleAttrId;
+    }
+
+    public void setSaleAttrId(String saleAttrId) {
+        this.saleAttrId = saleAttrId;
+    }
+
+    public String getSaleAttrName() {
+        return saleAttrName;
+    }
+
+    public void setSaleAttrName(String saleAttrName) {
+        this.saleAttrName = saleAttrName;
+    }
+
+    public List<SpuSaleAttrValue> getSpuSaleAttrValueList() {
+        return spuSaleAttrValueList;
+    }
+
+    public void setSpuSaleAttrValueList(List<SpuSaleAttrValue> spuSaleAttrValueList) {
+        this.spuSaleAttrValueList = spuSaleAttrValueList;
+    }
+
+    public Map getSpuSaleAttrValueJson() {
+        return spuSaleAttrValueJson;
+    }
+
+    public void setSpuSaleAttrValueJson(Map spuSaleAttrValueJson) {
+        this.spuSaleAttrValueJson = spuSaleAttrValueJson;
+    }
 }
 

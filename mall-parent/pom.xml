@@ -37,6 +37,7 @@
         <jest.version>5.3.3</jest.version>
         <jna.version>4.5.1</jna.version>
         <beanUtils.version>1.9.3</beanUtils.version>
+        <druid.version>1.0.18</druid.version>
     </properties>
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -149,6 +150,11 @@
                 <version>${beanUtils.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid</artifactId>
+                <version>${druid.version}</version>
+            </dependency>
 
         </dependencies>
     </dependencyManagement>

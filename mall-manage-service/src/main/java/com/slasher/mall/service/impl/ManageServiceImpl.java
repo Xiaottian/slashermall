@@ -5,6 +5,7 @@ import com.slasher.mall.bean.*;
 import com.slasher.mall.mapper.*;
 import com.slasher.mall.service.ManageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import tk.mybatis.mapper.entity.Example;
 
 import java.util.List;
 
@@ -29,6 +30,17 @@ public class ManageServiceImpl implements ManageService {
     @Autowired
     private SpuInfoMapper spuInfoMapper;
 
+    @Autowired
+    private BaseSaleAttrMapper baseSaleAttrMapper;
+
+    @Autowired
+    private SpuImageMapper spuImageMapper;
+
+    @Autowired
+    private SpuSaleAttrMapper spuSaleAttrMapper;
+
+    @Autowired
+    private SpuSaleAttrValueMapper spuSaleAttrValueMapper;
 
 
     @Override
@@ -69,14 +81,15 @@ public class ManageServiceImpl implements ManageService {
 
     @Override
     public void saveAttrInfo(BaseAttrInfo baseAttrInfo) {
-        //保存数据、编辑数据放到一起处理
-        //是否有主键
-        if (baseAttrInfo.getId() != null && baseAttrInfo.getId().length()>0){
-            //有主键，则修改
-            baseAttrInfoMapper.updateByPrimaryKeySelective(baseAttrInfo);
-        }else {
+        // 说明value_name的值没有拿到！
+        // 保存数据：编辑数据放到一起来处理。
+        // 是否有主键,操作都是指的是平台属性操作
+        if (baseAttrInfo.getId() != null && baseAttrInfo.getId().length() > 0) {
+            // 有主键 ，则修改
+            baseAttrInfoMapper.updateByPrimaryKey(baseAttrInfo);
+        } else {
             //没有主键则需要添加，注意一下，当没有主键的时候，数据库的id要设置为null，如果不设置有可能会出现空字符串
-            if (baseAttrInfo.getId().length() == 0){
+            if (baseAttrInfo.getId().length() == 0) {
                 baseAttrInfo.setId(null);
             }
             //开始插入数据
@@ -89,10 +102,10 @@ public class ManageServiceImpl implements ManageService {
         baseAttrValueMapper.delete(baseAttrValue);
 
         //开始操作属性值列表
-        if (baseAttrInfo.getAttrValueList() != null && baseAttrInfo.getAttrValueList().size() > 0){
+        if (baseAttrInfo.getAttrValueList() != null && baseAttrInfo.getAttrValueList().size() > 0) {
             //循环数据
             for (BaseAttrValue attrValue : baseAttrInfo.getAttrValueList()) {
-                if (attrValue.getId().length() == 0){
+                if (attrValue.getId().length() == 0) {
                     attrValue.setId(null);
                 }
                 attrValue.setAttrId(baseAttrInfo.getId());
@@ -117,8 +130,79 @@ public class ManageServiceImpl implements ManageService {
     }
 
     @Override
-    public List<SpuInfo> getSpuInfoList(SpuInfo spuInfo){
+    public List<SpuInfo> getSpuInfoList(SpuInfo spuInfo) {
         List<SpuInfo> spuInfoList = spuInfoMapper.select(spuInfo);
-        return  spuInfoList;
+        return spuInfoList;
+    }
+
+    @Override
+    public List<BaseSaleAttr> getBaseSaleAttrList() {
+        return baseSaleAttrMapper.selectAll();
+    }
+
+    @Override
+    public void saveSpuInfo(SpuInfo spuInfo) {
+        // 保存数据，spuinfo，spuimage，spusaleattr，spusaleattrvalue。
+        // 保存，更新一起玩。
+        if (spuInfo.getId() != null && spuInfo.getId().length() > 0) {
+            spuInfoMapper.updateByPrimaryKey(spuInfo);
+        } else {
+            // 判断key
+            if (spuInfo.getId() != null && spuInfo.getId().length() == 0) {
+                spuInfo.setId(null);
+            }
+            spuInfoMapper.insertSelective(spuInfo);
+        }
+
+        List<SpuImage> spuImageList = spuInfo.getSpuImageList();
+        if (spuImageList != null && spuImageList.size() > 0) {
+            // 先删除，在插入
+            SpuImage spuImage = new SpuImage();
+            spuImage.setSpuId(spuInfo.getId());
+            spuImageMapper.delete(spuImage);
+            for (SpuImage image : spuImageList) {
+                // "" 设置id 为null ，启动自增长
+                if (image.getId() != null && image.getId().length() == 0) {
+                    image.setId(null);
+                }
+                // 坑！
+                // 因为前台页面传递的数据没有spuId 所以设置 spuId
+                image.setSpuId(spuInfo.getId());
+                spuImageMapper.insertSelective(image);
+            }
+        }
+
+        // 先找到SpuSaleAttrList
+        List<SpuSaleAttr> spuSaleAttrList = spuInfo.getSpuSaleAttrList();
+        if (spuSaleAttrList != null && spuSaleAttrList.size() > 0){
+            // 属性，属性值 先删除，再插入
+            SpuSaleAttr spuSaleAttr = new SpuSaleAttr();
+            spuSaleAttr.setSpuId(spuInfo.getId());
+            spuSaleAttrMapper.delete(spuSaleAttr);
+
+            SpuSaleAttrValue spuSaleAttrValue = new SpuSaleAttrValue();
+            spuSaleAttrValue.setSpuId(spuInfo.getId());
+            spuSaleAttrValueMapper.delete(spuSaleAttrValue);
+            for (SpuSaleAttr saleAttr : spuSaleAttrList) {
+                if (saleAttr.getId() != null && saleAttr.getId().length() == 0) {
+                    saleAttr.setId(null);
+                }
+                // 因为前台页面传递的数据没有spuId 所以设置 spuId
+                saleAttr.setSpuId(spuInfo.getId());
+                spuSaleAttrMapper.insertSelective(saleAttr);
+
+                // 插入属性值！
+                List<SpuSaleAttrValue> spuSaleAttrValueList = saleAttr.getSpuSaleAttrValueList();
+                for (SpuSaleAttrValue saleAttrValue : spuSaleAttrValueList) {
+                    if (saleAttrValue.getId() != null && saleAttrValue.getId().length() == 0) {
+                        saleAttrValue.setId(null);
+                    }
+                    // 因为前台页面传递的数据没有spuId 所以设置 spuId
+                    saleAttrValue.setSpuId(spuInfo.getId());
+                    spuSaleAttrValueMapper.insertSelective(saleAttrValue);
+                }
+            }
+        }
+
     }
 }
