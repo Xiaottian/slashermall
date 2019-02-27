@@ -14,6 +14,17 @@ public class BaseAttrInfo implements Serializable {
     @Column
     private String catalog3Id;
 
+    @Transient
+    private String isEnabled;
+
+    public String getIsEnabled() {
+        return isEnabled;
+    }
+
+    public void setIsEnabled(String isEnabled) {
+        this.isEnabled = isEnabled;
+    }
+
     //属性值的集合，如果表中没有该字段，实体类需要的时候，则加@Transient注解
     @Transient
     private List<BaseAttrValue> attrValueList;

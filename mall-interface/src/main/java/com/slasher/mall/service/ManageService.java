@@ -28,4 +28,6 @@ public interface ManageService {
     public List<BaseSaleAttr> getBaseSaleAttrList();
     // 保存spuInfo的信息
     void saveSpuInfo(SpuInfo spuInfo);
+
+    SkuInfo getSkuInfo(String skuId);
 }
