@@ -5,7 +5,6 @@ import com.slasher.mall.bean.*;
 import com.slasher.mall.mapper.*;
 import com.slasher.mall.service.ManageService;
 import org.springframework.beans.factory.annotation.Autowired;
-import tk.mybatis.mapper.entity.Example;
 
 import java.util.List;
 
